@@ -10,6 +10,7 @@ namespace SupportHub.Infrastructure.Persisteance
 
         public DbSet<Ticket> Tickets { get; set; }
         public DbSet<TicketMessage> TicketMessages { get; set; }
+        public DbSet<User> Users { get; set; }
     }
 
 
