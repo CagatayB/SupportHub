@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SupportHub.Application.Interfaces;
 using SupportHub.Application.Services;
+using SupportHub.Infrastructure.Hubs;
 using SupportHub.Infrastructure.Persisteance;
 using System.Text;
 
@@ -12,14 +13,15 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<SupportHubDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// ISupportHubDbContext'i SupportHubDbContext olarak kaydediyoruz, böylece uygulama içinde ISupportHubDbContext istediğimizde SupportHubDbContext örneği verilecek.
-builder.Services.AddScoped<ISupportHubDbContext>(provider =>
+// IApplicationDbContext'i SupportHubDbContext olarak kaydediyoruz, böylece uygulama içinde IApplicationDbContext istediğimizde SupportHubDbContext örneği verilecek.
+builder.Services.AddScoped<IApplicationDbContext>(provider =>
     provider.GetRequiredService<SupportHubDbContext>());
 
 // --- Servis Kayıtları (DI) ---
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ITicketService, TicketService>();
-
+builder.Services.AddScoped<ITicketNotificationService, TicketNotificationService>();
+builder.Services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<SupportHubDbContext>());
 
 // --- JWT Authentication Ayarları ---
 builder.Services.AddAuthentication(options =>
@@ -39,11 +41,25 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("BlazorPolicy", builder =>
+    {
+        builder.WithOrigins("https://localhost:7001") // Blazor portun
+               .AllowAnyMethod()
+               .AllowAnyHeader()
+               .AllowCredentials(); // SignalR için şart!
+    });
+});
+
+
+
 
 // --- Standart Web API Servisleri --- 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddSignalR();
 
 var app = builder.Build();
 
@@ -56,9 +72,12 @@ if (app.Environment.IsDevelopment())
 
 //app.UseHttpsRedirection();
 
-app.UseAuthentication(); // 1. Kimsin?
-app.UseAuthorization();  // 2. Yetkin var mı?
+app.UseCors("BlazorPolicy");
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapHub<TicketHub>("/hubs/tickets");
 
 app.Run();

@@ -9,9 +9,9 @@ namespace SupportHub.Application.Services
     public class TicketService : ITicketService
     {
         // Gelecek adımda Repository eklenecek, şimdilik DbContext ile ilerleyebiliriz
-        private readonly ISupportHubDbContext _context;
+        private readonly IApplicationDbContext _context;
 
-        public TicketService(ISupportHubDbContext context)
+        public TicketService(IApplicationDbContext context)
         {
             _context = context;
         }

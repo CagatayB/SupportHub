@@ -4,7 +4,7 @@ using SupportHub.Domain.Entities;
 
 namespace SupportHub.Infrastructure.Persisteance
 {
-    public class SupportHubDbContext : DbContext, ISupportHubDbContext
+    public class SupportHubDbContext : DbContext, IApplicationDbContext
     {
         public SupportHubDbContext(DbContextOptions<SupportHubDbContext> options) : base(options) { }
 

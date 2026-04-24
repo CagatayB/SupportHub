@@ -13,9 +13,9 @@ namespace SupportHub.Application.Services
     public class AuthService : IAuthService
     {
         private readonly IConfiguration _configuration;
-        private readonly ISupportHubDbContext _context;
+        private readonly IApplicationDbContext _context;
 
-        public AuthService(IConfiguration configuration, ISupportHubDbContext context)
+        public AuthService(IConfiguration configuration, IApplicationDbContext context)
         {
             _configuration = configuration;
             _context = context;
