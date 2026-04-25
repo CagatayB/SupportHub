@@ -1,0 +1,101 @@
+﻿@page "/ticket/{Id:int}"
+@using Microsoft.AspNetCore.SignalR.Client
+@using SupportHub.Application.DTOs.Message
+@using SupportHub.Application.DTOs.Ticket
+@using SupportHub.Client.Services
+@inject TicketClientService TicketService
+@inject NavigationManager Nav
+@implements IAsyncDisposable
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-dark text-white">
+                    Talep Detayı #@Id
+                </div>
+                <div class="card-body">
+                    <h4>@currentTicket?.Title</h4>
+                    <hr />
+                    <p><strong>Durum:</strong> <span class="badge bg-info">@currentTicket?.Status</span></p>
+                    <p><strong>Öncelik:</strong> @currentTicket?.Priority</p>
+                    <p><strong>Açıklama:</strong> <br /> @currentTicket?.Description</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">💬 Mesajlaşma</div>
+                <div class="card-body chat-window" style="height: 400px; overflow-y: auto;">
+                    @foreach (var msg in messages)
+                    {
+                        <div class="mb-3 @(msg.IsOwner ? "text-end" : "text-start")">
+                            <div class="d-inline-block p-2 rounded @(msg.IsOwner ? "bg-primary text-white" : "bg-light text-dark")">
+                                <small class="d-block fw-bold" style="font-size: 0.7rem;">@msg.UserName</small>
+                                @msg.MessageText
+                                <small class="d-block text-muted" style="font-size: 0.6rem;">@msg.CreatedAt.ToShortTimeString()</small>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <div class="card-footer">
+                    <div class="input-group">
+                        <input type="text" class="form-control" @bind="newMessage" @onkeyup="HandleKeyPress" placeholder="Mesajınızı yazın..." />
+                        <button class="btn btn-primary" @onclick="SendMessage">Gönder</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public int Id { get; set; }
+    private TicketDto? currentTicket;
+    private List<MessageDto> messages = new();
+    private string newMessage = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Talebi ve eski mesajları yükle
+        currentTicket = await TicketService.GetTicketDetailAsync(Id);
+        messages = await TicketService.GetTicketMessagesAsync(Id);
+
+        // SignalR Grubuna Katıl (Sadece bu talebin mesajlarını almak için)
+        await TicketService.HubConnection.InvokeAsync("JoinTicketGroup", Id);
+
+        // Yeni mesaj geldiğinde listeyi güncelle
+        TicketService.HubConnection.On<MessageDto>("ReceiveMessage", (msg) =>
+        {
+            if (msg.TicketId == Id)
+            {
+                messages.Add(msg);
+                InvokeAsync(StateHasChanged);
+            }
+        });
+    }
+
+    // Mesaj gönderme işlemi
+    private async Task SendMessage()
+    {
+        if (!string.IsNullOrWhiteSpace(newMessage))
+        {
+            await TicketService.SendMessageAsync(Id, newMessage);
+            newMessage = "";
+        }
+    }
+
+    // Enter tuşuna basıldığında mesaj gönder
+    private async Task HandleKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") await SendMessage();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        // Sayfadan ayrılırken SignalR grubundan çık
+        if (TicketService.HubConnection is not null)
+            await TicketService.HubConnection.InvokeAsync("LeaveTicketGroup", Id);
+    }
+}

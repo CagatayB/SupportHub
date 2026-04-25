@@ -22,6 +22,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ITicketService, TicketService>();
 builder.Services.AddScoped<ITicketNotificationService, TicketNotificationService>();
 builder.Services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<SupportHubDbContext>());
+builder.Services.AddScoped<IMessageService, MessageService>();
 
 // --- JWT Authentication ---
 builder.Services.AddAuthentication(options =>

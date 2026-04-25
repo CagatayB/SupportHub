@@ -4,6 +4,8 @@ namespace SupportHub.Application.Interfaces
 {
     public interface IMessageService
     {
-        Task<MessageDto> SendMessageAsync(int ticketId, string text, string userId);
+
+        Task<List<MessageDto>> GetMessagesByTicketIdAsync(int ticketId);
+        Task<MessageDto> SendMessageAsync(int ticketId, SendMessageRequest request, string userId);
     }
 }

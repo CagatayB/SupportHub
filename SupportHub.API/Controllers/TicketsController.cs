@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using SupportHub.Application.DTOs.Message;
 using SupportHub.Application.DTOs.Ticket;
 using SupportHub.Application.Interfaces;
+using SupportHub.Application.Services;
 
 namespace SupportHub.API.Controllers
 {
@@ -9,17 +11,20 @@ namespace SupportHub.API.Controllers
     public class TicketsController : ControllerBase
     {
         private readonly ITicketService _ticketService;
+        private readonly IMessageService _messageService;
 
-        public TicketsController(ITicketService ticketService)
+
+        public TicketsController(ITicketService ticketService, IMessageService messageService)
         {
             _ticketService = ticketService;
+            _messageService = messageService;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetAll()
+        [HttpGet("{ticketId}/messages")]
+        public async Task<IActionResult> GetMessages(int ticketId)
         {
-            var tickets = await _ticketService.GetAllTicketsAsync();
-            return Ok(tickets);
+            var messages = await _messageService.GetMessagesByTicketIdAsync(ticketId);
+            return Ok(messages);
         }
 
         [HttpPost]
@@ -39,6 +44,16 @@ namespace SupportHub.API.Controllers
             if (ticket == null) return NotFound();
 
             return Ok(ticket);
+        }
+
+        [HttpPost("{ticketId}/messages")]
+        public async Task<IActionResult> SendMessage(int ticketId, [FromBody] SendMessageRequest request)
+        {
+            // Şimdilik test ID'si, Auth sonrası User.FindFirstValue(ClaimTypes.NameIdentifier) olacak
+            var userId = "test-user-123";
+
+            var result = await _messageService.SendMessageAsync(ticketId, request, userId);
+            return Ok(result);
         }
     }
 }

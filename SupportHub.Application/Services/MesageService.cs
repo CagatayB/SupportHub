@@ -2,6 +2,7 @@
 using SupportHub.Application.DTOs.Message;
 using SupportHub.Application.Interfaces;
 using SupportHub.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace SupportHub.Application.Services
 {
@@ -16,12 +17,29 @@ namespace SupportHub.Application.Services
             _notificationService = notificationService;
         }
 
-        public async Task<MessageDto> SendMessageAsync(int ticketId, string text, string userId)
+        public async Task<List<MessageDto>> GetMessagesByTicketIdAsync(int ticketId)
+        {
+            return await _context.TicketMessages
+                .Where(m => m.TicketId == ticketId && !m.IsDeleted)
+                .OrderBy(m => m.CreatedAt)
+                .Select(m => new MessageDto
+                {
+                    Id = m.Id,
+                    TicketId = m.TicketId,
+                    MessageText = m.MessageText,
+                    UserName = "Kullanıcı " + m.UserId, // İleride Identity ile gerçek isim gelecek
+                    CreatedAt = m.CreatedAt,
+                    IsOwner = false // Auth eklenince düzelecek
+                })
+                .ToListAsync();
+        }
+
+        public async Task<MessageDto> SendMessageAsync(int ticketId, SendMessageRequest request, string userId)
         {
             var message = new TicketMessage
             {
                 TicketId = ticketId,
-                MessageText = text,
+                MessageText = request.MessageText,
                 UserId = userId,
                 CreatedAt = DateTime.UtcNow
             };
@@ -32,9 +50,11 @@ namespace SupportHub.Application.Services
             var dto = new MessageDto
             {
                 Id = message.Id,
+                TicketId = message.TicketId,
                 MessageText = message.MessageText,
-                UserId = message.UserId,
-                CreatedAt = message.CreatedAt
+                UserName = "User",
+                CreatedAt = message.CreatedAt,
+                IsOwner = true
             };
 
             // Yeni mesaj gönderildiğinde ilgili ticket'a bağlı tüm kullanıcıları bilgilendir.

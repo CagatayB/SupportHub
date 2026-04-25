@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.SignalR.Client;
+using SupportHub.Application.DTOs.Message;
 using SupportHub.Application.DTOs.Ticket;
 using System.Net.Http.Json;
 
@@ -7,7 +8,7 @@ namespace SupportHub.Client.Services
     public class TicketClientService
     {
         private readonly HttpClient _http;
-        private HubConnection _hubConnection;
+        public HubConnection HubConnection { get; private set; }
 
         public List<TicketDto> Tickets { get; set; } = new();
         public event Action? OnDataChanged; // UI triggered when data changes
@@ -17,13 +18,13 @@ namespace SupportHub.Client.Services
             _http = http;
 
             // Initialize SignalR connection
-            _hubConnection = new HubConnectionBuilder()
-                .WithUrl(config["SignalRHubUrl"] + "/hubs/tickets" ?? throw new InvalidOperationException("SignalRHubUrl not configured"))
+            HubConnection = new HubConnectionBuilder()
+                .WithUrl(config["ApiBaseUrl"] + "/hubs/tickets" ?? throw new InvalidOperationException("SignalRHubUrl not configured"))
                 .WithAutomaticReconnect()
                 .Build();
 
             // Listen for updates from the server
-            _hubConnection.On<TicketDto>("TicketUpdated", (updatedTicket) => {
+            HubConnection.On<TicketDto>("TicketUpdated", (updatedTicket) => {
                 var index = Tickets.FindIndex(t => t.Id == updatedTicket.Id);
 
                 if (index != -1)
@@ -45,10 +46,10 @@ namespace SupportHub.Client.Services
         {
             try
             {
-                if (_hubConnection.State == HubConnectionState.Disconnected)
+                if (HubConnection.State == HubConnectionState.Disconnected)
                 {
-                    await _hubConnection.StartAsync();
-                    Console.WriteLine($"Bağlantı Başarılı: {_hubConnection.ConnectionId}");
+                    await HubConnection.StartAsync();
+                    Console.WriteLine($"Bağlantı Başarılı: {HubConnection.ConnectionId}");
                 }
             }
             catch (Exception ex)
@@ -61,6 +62,23 @@ namespace SupportHub.Client.Services
         {
             Tickets = await _http.GetFromJsonAsync<List<TicketDto>>("api/tickets") ?? new();
             OnDataChanged?.Invoke();
+        }
+
+        public async Task<TicketDto?> GetTicketDetailAsync(int id)
+        {
+            return await _http.GetFromJsonAsync<TicketDto>($"api/tickets/{id}");
+        }
+
+        public async Task<List<MessageDto>> GetTicketMessagesAsync(int ticketId)
+        {
+            // API tarafında mesajları çeken bir endpoint olduğunu varsayıyoruz
+            return await _http.GetFromJsonAsync<List<MessageDto>>($"api/tickets/{ticketId}/messages") ?? new();
+        }
+
+        public async Task SendMessageAsync(int ticketId, string text)
+        {
+            var request = new { TicketId = ticketId, MessageText = text };
+            await _http.PostAsJsonAsync($"api/tickets/{ticketId}/messages", request);
         }
     }
 }
