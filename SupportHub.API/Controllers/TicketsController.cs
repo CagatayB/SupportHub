@@ -25,8 +25,7 @@ namespace SupportHub.API.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateTicketRequest request)
         {
-            // Şimdilik test amaçlı sabit bir UserId veriyoruz. 
-            // Auth eklediğimizde bunu JWT'den alacağız.
+            // In a real application, you would get the user ID from the authenticated user context
             var userId = "test-user-123";
 
             var result = await _ticketService.CreateTicketAsync(request, userId);

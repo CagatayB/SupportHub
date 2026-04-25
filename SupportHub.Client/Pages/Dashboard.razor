@@ -1,0 +1,73 @@
+﻿@page "/dashboard"
+@using SupportHub.Client.Services
+@inject TicketClientService TicketService
+@implements IAsyncDisposable
+
+<h3>📊 Destek Dashboard</h3>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card bg-primary text-white p-3">
+            <h5>Toplam Talep</h5>
+            <h2>@TicketService.Tickets.Count</h2>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-warning text-dark p-3">
+            <h5>Açık Talepler</h5>
+            <h2>@TicketService.Tickets.Count(t => t.Status == "Open")</h2>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-success text-white p-3">
+            <h5>Çözülenler</h5>
+            <h2>@TicketService.Tickets.Count(t => t.Status == "Resolved")</h2>
+        </div>
+    </div>
+</div>
+
+<table class="table table-hover">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Başlık</th>
+            <th>Durum</th>
+            <th>Öncelik</th>
+            <th>İşlem</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var ticket in TicketService.Tickets)
+        {
+            <tr>
+                <td>#@ticket.Id</td>
+                <td>@ticket.Title</td>
+                <td><span class="badge @GetStatusClass(ticket.Status)">@ticket.Status</span></td>
+                <td>@ticket.Priority</td>
+                <td><button class="btn btn-sm btn-outline-info">Detay</button></td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        TicketService.OnDataChanged += StateHasChanged;
+        await TicketService.StartAsync();
+        await TicketService.LoadTicketsAsync();
+    }
+
+    private string GetStatusClass(string status) => status switch
+    {
+        "Open" => "bg-danger",
+        "InProgress" => "bg-warning",
+        "Resolved" => "bg-success",
+        _ => "bg-secondary"
+    };
+
+    public async ValueTask DisposeAsync()
+    {
+        TicketService.OnDataChanged -= StateHasChanged;
+    }
+}

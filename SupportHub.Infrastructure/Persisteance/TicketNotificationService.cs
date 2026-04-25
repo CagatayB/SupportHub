@@ -1,10 +1,8 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using SupportHub.Application.DTOs.Message;
+using SupportHub.Application.DTOs.Ticket;
 using SupportHub.Application.Interfaces;
 using SupportHub.Infrastructure.Hubs;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace SupportHub.Infrastructure.Persisteance
 {
@@ -21,6 +19,15 @@ namespace SupportHub.Infrastructure.Persisteance
         {
             await _hubContext.Clients.Group(ticketId.ToString())
                 .SendAsync("ReceiveMessage", message);
+        }
+        public async Task NotifyTicketCreated(TicketDto ticketDto)
+        {
+            await _hubContext.Clients.All.SendAsync("TicketUpdated", ticketDto);
+        }
+
+        public async Task NotifyTicketUpdated(TicketDto ticketDto)
+        {
+            await _hubContext.Clients.All.SendAsync("TicketUpdated", ticketDto);
         }
     }
 }

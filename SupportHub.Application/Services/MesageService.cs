@@ -37,7 +37,7 @@ namespace SupportHub.Application.Services
                 CreatedAt = message.CreatedAt
             };
 
-            // SignalR bağımlılığı olmadan bildirimi gönder
+            // Yeni mesaj gönderildiğinde ilgili ticket'a bağlı tüm kullanıcıları bilgilendir.
             await _notificationService.SendMessageNotificationAsync(ticketId, dto);
 
             return dto;

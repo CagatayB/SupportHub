@@ -1,8 +1,4 @@
 ﻿using SupportHub.Application.DTOs.Message;
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 
 namespace SupportHub.Application.Interfaces
 {

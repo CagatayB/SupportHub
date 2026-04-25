@@ -1,19 +1,22 @@
-﻿using SupportHub.Application.DTOs.Ticket;
+﻿using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
+using SupportHub.Application.DTOs.Ticket;
 using SupportHub.Application.Interfaces;
 using SupportHub.Domain.Entities;
-using Microsoft.EntityFrameworkCore;
 using static SupportHub.Domain.Enums.Enums;
 
 namespace SupportHub.Application.Services
 {
     public class TicketService : ITicketService
     {
-        // Gelecek adımda Repository eklenecek, şimdilik DbContext ile ilerleyebiliriz
         private readonly IApplicationDbContext _context;
+        private readonly ITicketNotificationService _ticketNotificationService;
 
-        public TicketService(IApplicationDbContext context)
+
+        public TicketService(IApplicationDbContext context, ITicketNotificationService ticketNotificationService)
         {
             _context = context;
+            _ticketNotificationService = ticketNotificationService;
         }
 
         public async Task<TicketDto> CreateTicketAsync(CreateTicketRequest request, string userId)
@@ -31,18 +34,35 @@ namespace SupportHub.Application.Services
             _context.Tickets.Add(ticket);
             await _context.SaveChangesAsync();
 
-            return new TicketDto
+            var dto = new TicketDto
             {
                 Id = ticket.Id,
                 Title = ticket.Title,
-                Status = ticket.Status.ToString()
-                // Diğer alanlar...
+                Status = ticket.Status.ToString(),
+                Priority = ticket.Priority.ToString(),
+                CreatedAt = ticket.CreatedAt
             };
+
+            // Hub yerine interface üzerinden çağırıyoruz
+            await _ticketNotificationService.NotifyTicketCreated(dto);
+
+            return dto;
         }
 
-        public Task<IEnumerable<TicketDto>> GetAllTicketsAsync()
+        public async Task<IEnumerable<TicketDto>> GetAllTicketsAsync()
         {
-            throw new NotImplementedException();
+            return await _context.Tickets
+                .Where(x => !x.IsDeleted)
+                .OrderByDescending(x => x.CreatedAt)
+                .Select(t => new TicketDto
+                {
+                    Id = t.Id,
+                    Title = t.Title,
+                    Status = t.Status.ToString(),
+                    Priority = t.Priority.ToString(),
+                    CreatedAt = t.CreatedAt
+                })
+                .ToListAsync();
         }
 
         public async Task<TicketDto?> GetTicketByIdAsync(int id)
@@ -70,7 +90,5 @@ namespace SupportHub.Application.Services
         {
             throw new NotImplementedException();
         }
-
-        // Diğer metodların implementasyonları...
     }
 }

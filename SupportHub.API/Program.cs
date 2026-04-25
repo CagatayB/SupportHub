@@ -17,13 +17,13 @@ builder.Services.AddDbContext<SupportHubDbContext>(options =>
 builder.Services.AddScoped<IApplicationDbContext>(provider =>
     provider.GetRequiredService<SupportHubDbContext>());
 
-// --- Servis Kayıtları (DI) ---
+// --- (DI) ---
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ITicketService, TicketService>();
 builder.Services.AddScoped<ITicketNotificationService, TicketNotificationService>();
 builder.Services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<SupportHubDbContext>());
 
-// --- JWT Authentication Ayarları ---
+// --- JWT Authentication ---
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -45,17 +45,17 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("BlazorPolicy", builder =>
     {
-        builder.WithOrigins("https://localhost:7001") // Blazor portun
+        builder.WithOrigins("https://localhost:5001") // Blazor port
                .AllowAnyMethod()
                .AllowAnyHeader()
-               .AllowCredentials(); // SignalR için şart!
+               .AllowCredentials();
     });
 });
 
 
 
 
-// --- Standart Web API Servisleri --- 
+// --- Web API Servisleri --- 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -72,11 +72,11 @@ if (app.Environment.IsDevelopment())
 
 //app.UseHttpsRedirection();
 
-app.UseCors("BlazorPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.UseCors("BlazorPolicy");
 
 app.MapHub<TicketHub>("/hubs/tickets");
 
