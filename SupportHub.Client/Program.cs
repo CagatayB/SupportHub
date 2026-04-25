@@ -7,7 +7,8 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://localhost:5070/") });
+var apiBaseUrl = builder.Configuration["ApiBaseUrl"] ?? "http://localhost:5070";
+builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiBaseUrl) });
 builder.Services.AddScoped<TicketClientService>();
 
 await builder.Build().RunAsync();

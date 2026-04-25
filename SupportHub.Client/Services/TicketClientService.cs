@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.SignalR.Client;
 using SupportHub.Application.DTOs.Ticket;
-using System.Diagnostics.Tracing;
 using System.Net.Http.Json;
 
 namespace SupportHub.Client.Services
@@ -44,10 +43,17 @@ namespace SupportHub.Client.Services
 
         public async Task StartAsync()
         {
-            if (_hubConnection.State == HubConnectionState.Disconnected)
+            try
             {
-                await _hubConnection.StartAsync();
-                Console.WriteLine("SignalR Bağlantısı Kuruldu: " + _hubConnection.ConnectionId);
+                if (_hubConnection.State == HubConnectionState.Disconnected)
+                {
+                    await _hubConnection.StartAsync();
+                    Console.WriteLine($"Bağlantı Başarılı: {_hubConnection.ConnectionId}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"SignalR Hatası: {ex.Message}");
             }
         }
 

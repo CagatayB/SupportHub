@@ -53,10 +53,11 @@
 @code {
     protected override async Task OnInitializedAsync()
     {
-        TicketService.OnDataChanged += StateHasChanged;
+        TicketService.OnDataChanged += NotifyStateChanged;
         await TicketService.StartAsync();
         await TicketService.LoadTicketsAsync();
     }
+    private void NotifyStateChanged() => InvokeAsync(StateHasChanged);
 
     private string GetStatusClass(string status) => status switch
     {
@@ -68,6 +69,11 @@
 
     public async ValueTask DisposeAsync()
     {
-        TicketService.OnDataChanged -= StateHasChanged;
+        TicketService.OnDataChanged -= NotifyStateChanged;
     }
+
+    // public void Dispose()
+    // {
+    //     TicketService.OnDataChanged -= NotifyStateChanged;
+    // }
 }

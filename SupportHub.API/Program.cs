@@ -45,7 +45,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("BlazorPolicy", builder =>
     {
-        builder.WithOrigins("https://localhost:5001") // Blazor port
+        builder.WithOrigins("http://localhost:5001") // Blazor port
                .AllowAnyMethod()
                .AllowAnyHeader()
                .AllowCredentials();
@@ -72,11 +72,13 @@ if (app.Environment.IsDevelopment())
 
 //app.UseHttpsRedirection();
 
+app.UseRouting();
+app.UseCors("BlazorPolicy");
+
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-app.UseCors("BlazorPolicy");
 
 app.MapHub<TicketHub>("/hubs/tickets");
 
