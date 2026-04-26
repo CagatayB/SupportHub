@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SupportHub.Application.DTOs.Message;
 using SupportHub.Application.DTOs.Ticket;
 using SupportHub.Application.Interfaces;
@@ -27,6 +28,7 @@ namespace SupportHub.API.Controllers
             return Ok(messages);
         }
 
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateTicketRequest request)
         {
@@ -54,6 +56,21 @@ namespace SupportHub.API.Controllers
 
             var result = await _messageService.SendMessageAsync(ticketId, request, userId);
             return Ok(result);
+        }
+
+        [Authorize(Roles = "Admin,SupportStaff")] // Sadece yetkililer atama yapabilir
+        [HttpPatch("{id}/assign")] // Kısmi güncelleme olduğu için Patch tercih edilir
+        public async Task<IActionResult> AssignTicket(int id, [FromBody] AssignTicketRequest request)
+        {
+            if (string.IsNullOrEmpty(request.StaffUserId))
+                return BadRequest("Personel ID'si boş olamaz.");
+
+            var result = await _ticketService.AssignTicketAsync(id, request);
+
+            if (!result)
+                return NotFound($"ID'si {id} olan talep bulunamadı.");
+
+            return Ok(new { message = $"Talep başarıyla personele (@request.StaffUserId) atandı." });
         }
     }
 }
