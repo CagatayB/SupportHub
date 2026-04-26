@@ -1,0 +1,42 @@
+﻿@page "/login"
+@using Microsoft.AspNetCore.Components.Authorization
+@using SupportHub.Application.DTOs.Auth
+@using SupportHub.Client.Auth
+@using SupportHub.Client.Services
+@inject HttpClient Http
+@inject BrowserStorageService Storage
+@inject AuthenticationStateProvider AuthProvider
+@inject NavigationManager Nav
+
+<div class="card mx-auto mt-5" style="max-width: 400px;">
+    <div class="card-body">
+        <h3 class="card-title text-center">Giriş Yap</h3>
+        <EditForm Model="loginModel" OnValidSubmit="HandleLogin">
+            <div class="mb-3">
+                <label>Kullanıcı Adı</label>
+                <InputText @bind-Value="loginModel.Username" class="form-control" />
+            </div>
+            <div class="mb-3">
+                <label>Şifre</label>
+                <InputText @bind-Value="loginModel.Password" type="password" class="form-control" />
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Giriş</button>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private LoginRequest loginModel = new();
+
+    private async Task HandleLogin()
+    {
+        var response = await Http.PostAsJsonAsync("api/auth/login", loginModel);
+        if (response.IsSuccessStatusCode)
+        {
+            var result = await response.Content.ReadFromJsonAsync<AuthResponse>();
+            await Storage.SetTokenAsync(result.Token);
+            ((CustomAuthStateProvider)AuthProvider).NotifyUserLogin(result.Token);
+            Nav.NavigateTo("/dashboard");
+        }
+    }
+}

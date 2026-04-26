@@ -72,5 +72,14 @@ namespace SupportHub.API.Controllers
 
             return Ok(new { message = $"Talep başarıyla personele (@request.StaffUserId) atandı." });
         }
+
+        [HttpGet] // Artık api/tickets adresine gelen GET isteklerini karşılar
+        public async Task<IActionResult> GetAll()
+        {
+            // Auth mekanizması tam oturduğunda burada kullanıcının rolüne göre 
+            // filtreleme yapabilirsin (Admin hepsini, User sadece kendisininkileri görür).
+            var tickets = await _ticketService.GetAllTicketsAsync();
+            return Ok(tickets);
+        }
     }
 }
