@@ -37,7 +37,7 @@ namespace SupportHub.Client.Auth
 		{
 			var handler = new JwtSecurityTokenHandler();
 			var jwtToken = handler.ReadJwtToken(token);
-			var identity = new ClaimsIdentity(jwtToken.Claims, "jwt");
+			var identity = new ClaimsIdentity(jwtToken.Claims, "jwt", ClaimTypes.Name, ClaimTypes.Role);
 			return new AuthenticationState(new ClaimsPrincipal(identity));
 		}
 	}

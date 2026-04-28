@@ -1,16 +1,15 @@
 ﻿@inherits LayoutComponentBase
+
 <div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
-
     <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
+        <NavMenu />
 
-        <article class="content px-4">
+        <article class="content px-4 py-3">
             @Body
         </article>
     </main>
 </div>
+
+<footer class="text-center py-4 text-muted border-top mt-5">
+    &copy; 2026 SupportHub - Portfolyo Projesi
+</footer>

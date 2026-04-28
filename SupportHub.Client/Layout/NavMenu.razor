@@ -1,52 +1,46 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">SupportHub.Client</a>
-        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@using SupportHub.Client.Auth
+@using SupportHub.Client.Services
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="/">🎫 SupportHub</a>
+        
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav me-auto">
+                <AuthorizeView>
+                    <Authorized>
+                        <li class="nav-item">
+                            <NavLink class="nav-link" href="dashboard">Dashboard</NavLink>
+                        </li>
+                    </Authorized>
+                </AuthorizeView>
+            </ul>
+            
+            <div class="d-flex align-items-center">
+                <AuthorizeView>
+                    <Authorized>
+                        <span class="text-light me-3 small">Hoş geldin, <strong>@context.User.Identity?.Name</strong></span>
+                        <button class="btn btn-sm btn-outline-light" @onclick="HandleLogout">Çıkış Yap</button>
+                    </Authorized>
+                    <NotAuthorized>
+                        <a href="/login" class="btn btn-sm btn-primary me-2">Giriş</a>
+                        <a href="/register" class="btn btn-sm btn-outline-light">Kayıt</a>
+                    </NotAuthorized>
+                </AuthorizeView>
+            </div>
+        </div>
     </div>
-</div>
-
-<div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
-    <nav class="nav flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Counter
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="dashboard">
-                <span class="bi bi-bar-chart-fill-nav-menu" aria-hidden="true"></span> Dashboard
-            </NavLink>
-        </div
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="login">
-                <span class="bi bi-box-arrow-in-right-nav-menu" aria-hidden="true"></span> Login
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="weather">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Weather
-            </NavLink>
-        </div>
-    </nav>
-</div>
+</nav>
 
 @code {
-    private bool collapseNavMenu = true;
+    @inject BrowserStorageService Storage
+    @inject AuthenticationStateProvider AuthProvider
+    @inject NavigationManager Nav
 
-    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
-
-    private void ToggleNavMenu()
+    private async Task HandleLogout()
     {
-        collapseNavMenu = !collapseNavMenu;
+        await Storage.RemoveTokenAsync();
+        ((CustomAuthStateProvider)AuthProvider).NotifyUserLogout();
+        Nav.NavigateTo("/");
     }
 }

@@ -23,6 +23,10 @@ namespace SupportHub.Application.Services
 
         public async Task<string> RegisterAsync(RegisterRequest request)
         {
+            // Doğrulama: Aynı kullanıcı adı veya e-posta adresiyle kayıtlı bir kullanıcı kontrolü
+            var exists = await _context.Users.AnyAsync(u => u.Username == request.Username || u.Email == request.Email);
+            if (exists) throw new Exception("Kullanıcı zaten mevcut.");
+
             var user = new User
             {
                 Username = request.Username,
@@ -54,7 +58,7 @@ namespace SupportHub.Application.Services
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(ClaimTypes.Name, user.Username),
             new Claim(ClaimTypes.Email, user.Email),
-            new Claim(ClaimTypes.Role, user.Role) // Kritik: Rol burada ekleniyor
+            new Claim(ClaimTypes.Role, user.Role)
         };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Token"]!));
