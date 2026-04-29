@@ -16,6 +16,30 @@ a, .btn-link {
     border-color: #1861ac;
 }
 
+/* Chat alanı sınırlaması */
+.max-w-75 {
+    max-width: 75%;
+}
+
+/* Scrollbar özelleştirme */
+#chatContainer::-webkit-scrollbar {
+    width: 6px;
+}
+
+#chatContainer::-webkit-scrollbar-thumb {
+    background-color: #dee2e6;
+    border-radius: 10px;
+}
+
+/* Arka plan yumuşatma */
+body {
+    background-color: #f4f7f6;
+}
+
+.card {
+    border-radius: 12px;
+}
+
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
   box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
 }
@@ -113,3 +137,4 @@ code {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
 }
+

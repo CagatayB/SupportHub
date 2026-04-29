@@ -4,6 +4,7 @@ using SupportHub.Application.DTOs.Message;
 using SupportHub.Application.DTOs.Ticket;
 using SupportHub.Application.Interfaces;
 using SupportHub.Application.Services;
+using System.Security.Claims;
 
 namespace SupportHub.API.Controllers
 {
@@ -28,12 +29,12 @@ namespace SupportHub.API.Controllers
             return Ok(messages);
         }
 
-        [Authorize]
+        //[Authorize]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateTicketRequest request)
         {
             // In a real application, you would get the user ID from the authenticated user context
-            var userId = "test-user-123";
+            var userId = "123"; // In a real application, you would get the user ID from the authenticated user context
 
             var result = await _ticketService.CreateTicketAsync(request, userId);
             return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
@@ -52,34 +53,45 @@ namespace SupportHub.API.Controllers
         public async Task<IActionResult> SendMessage(int ticketId, [FromBody] SendMessageRequest request)
         {
             // Şimdilik test ID'si, Auth sonrası User.FindFirstValue(ClaimTypes.NameIdentifier) olacak
-            var userId = "test-user-123";
+            string userId = "123";
 
             var result = await _messageService.SendMessageAsync(ticketId, request, userId);
             return Ok(result);
         }
 
-        [Authorize(Roles = "Admin,SupportStaff")] // Sadece yetkililer atama yapabilir
-        [HttpPatch("{id}/assign")] // Kısmi güncelleme olduğu için Patch tercih edilir
-        public async Task<IActionResult> AssignTicket(int id, [FromBody] AssignTicketRequest request)
-        {
-            if (string.IsNullOrEmpty(request.StaffUserId))
-                return BadRequest("Personel ID'si boş olamaz.");
 
+        //[Authorize(Roles = "Admin,SupportStaff")]
+        [HttpPatch("{id}/assign")]
+        public async Task<IActionResult> AssignTicket(int id)
+        {
+            var staffUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (staffUserId == null) return NotFound();
+
+            var request = new AssignTicketRequest { StaffUserId = staffUserId };
             var result = await _ticketService.AssignTicketAsync(id, request);
 
-            if (!result)
-                return NotFound($"ID'si {id} olan talep bulunamadı.");
-
-            return Ok(new { message = $"Talep başarıyla personele (@request.StaffUserId) atandı." });
+            return result ? Ok(new { Message = "Talep başarıyla atandı." }) : NotFound("Talebe ulaşılamadı veya atanamadı.");
         }
 
-        [HttpGet] // Artık api/tickets adresine gelen GET isteklerini karşılar
+
+
+        [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            // Auth mekanizması tam oturduğunda burada kullanıcının rolüne göre 
-            // filtreleme yapabilirsin (Admin hepsini, User sadece kendisininkileri görür).
             var tickets = await _ticketService.GetAllTicketsAsync();
             return Ok(tickets);
+        }
+
+
+        [HttpPatch("{id}/status")]
+     // [Authorize(Roles = "Admin,SupportStaff")] // Sadece yetkili personel durum değiştirebilir
+        public async Task<IActionResult> UpdateStatus(int id, [FromBody] int status)
+        {
+            var result = await _ticketService.UpdateStatusAsync(id, status);
+            if (!result) return NotFound("Talebe ulaşılamadı veya güncellenemedi.");
+
+            return Ok(new { Message = "Durum başarıyla güncellendi." });
         }
     }
 }

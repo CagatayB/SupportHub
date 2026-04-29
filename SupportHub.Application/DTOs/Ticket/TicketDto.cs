@@ -8,6 +8,7 @@
         public string Status { get; set; } = string.Empty;
         public string Priority { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
         public string CreatedByUserId { get; set; } = string.Empty;
         public string? AssignedToUserId { get; set; }
     }

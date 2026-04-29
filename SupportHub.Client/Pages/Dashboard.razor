@@ -44,13 +44,19 @@
                 <td>@ticket.Title</td>
                 <td><span class="badge @GetStatusClass(ticket.Status)">@ticket.Status</span></td>
                 <td>@ticket.Priority</td>
-                <td><button class="btn btn-sm btn-outline-info">Detay</button></td>
+                <td>
+                    <button class="btn btn-sm btn-outline-info" @onclick="@(() => GoToDetail(ticket.Id))">
+                        <i class="bi bi-eye"></i> Detay
+                    </button>
+                </td>
             </tr>
         }
     </tbody>
 </table>
 
 @code {
+    [Inject] NavigationManager Nav { get; set; } = null!;
+
     protected override async Task OnInitializedAsync()
     {
         TicketService.OnDataChanged += NotifyStateChanged;
@@ -67,13 +73,14 @@
         _ => "bg-secondary"
     };
 
+    private void GoToDetail(int id)
+    {
+        // Rota: /ticket/{id}
+        Nav.NavigateTo($"/ticket/{id}");
+    }
+
     public async ValueTask DisposeAsync()
     {
         TicketService.OnDataChanged -= NotifyStateChanged;
     }
-
-    // public void Dispose()
-    // {
-    //     TicketService.OnDataChanged -= NotifyStateChanged;
-    // }
 }

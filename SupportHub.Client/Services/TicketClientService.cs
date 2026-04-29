@@ -80,5 +80,17 @@ namespace SupportHub.Client.Services
             var request = new { TicketId = ticketId, MessageText = text };
             await _http.PostAsJsonAsync($"api/tickets/{ticketId}/messages", request);
         }
+
+        public async Task<bool> UpdateStatusAsync(int ticketId, int status)
+        {
+            var response = await _http.PatchAsJsonAsync($"api/tickets/{ticketId}/status", status);
+            return response.IsSuccessStatusCode;
+        }
+
+        public async Task<bool> AssignTicketAsync(int ticketId)
+        {
+            var response = await _http.PatchAsync($"api/tickets/{ticketId}/assign", null);
+            return response.IsSuccessStatusCode;
+        }
     }
 }

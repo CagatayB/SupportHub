@@ -29,6 +29,7 @@ namespace SupportHub.Application.Services
                     MessageText = m.MessageText,
                     UserName = "Kullanıcı " + m.UserId, // İleride Identity ile gerçek isim gelecek
                     CreatedAt = m.CreatedAt,
+                    UpdatedAt = m.UpdatedAt,
                     IsOwner = false // Auth eklenince düzelecek
                 })
                 .ToListAsync();
@@ -41,7 +42,8 @@ namespace SupportHub.Application.Services
                 TicketId = ticketId,
                 MessageText = request.MessageText,
                 UserId = userId,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
             };
 
             _context.TicketMessages.Add(message);

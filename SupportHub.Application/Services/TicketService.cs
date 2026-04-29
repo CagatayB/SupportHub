@@ -81,14 +81,45 @@ namespace SupportHub.Application.Services
                 Status = ticket.Status.ToString(),
                 Priority = ticket.Priority.ToString(),
                 CreatedAt = ticket.CreatedAt,
+                UpdatedAt = ticket.UpdatedAt,
                 CreatedByUserId = ticket.CreatedByUserId,
                 AssignedToUserId = ticket.AssignedToUserId
             };
-        }
+            }
 
-        public Task<bool> UpdateStatusAsync(int ticketId, int status)
+        public async Task<bool> UpdateStatusAsync(int ticketId, int status)
         {
-            throw new NotImplementedException();
+            // 1. Talebi veritabanından bul
+            var ticket = await _context.Tickets.FirstOrDefaultAsync(t => t.Id == ticketId);
+
+            if (ticket == null)
+            {
+                return false;
+            }
+
+            // 2. Durumu güncelle (Enum casting kullanarak)
+            // Not: TicketStatus enum'ının int değerleri ile UI'dan gelen değerlerin eşleştiğinden emin ol
+            ticket.Status = (TicketStatus)status;
+            ticket.UpdatedAt = DateTime.UtcNow;
+
+            // 3. Değişiklikleri kaydet
+            var result = await _context.SaveChangesAsync();
+
+            if (result > 0)
+            {
+                await _ticketNotificationService.NotifyTicketUpdated(new TicketDto
+                {
+                    Id = ticket.Id,
+                    Status = ticket.Status.ToString(),
+                    Priority = ticket.Priority.ToString(),
+                    CreatedAt = ticket.CreatedAt,
+                    CreatedByUserId = ticket.CreatedByUserId,
+                    AssignedToUserId = ticket.AssignedToUserId
+                });
+                return true;
+            }
+
+            return false;
         }
 
         public async Task<bool> AssignTicketAsync(int ticketId, AssignTicketRequest request)

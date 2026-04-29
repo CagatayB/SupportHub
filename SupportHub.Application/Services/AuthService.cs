@@ -32,7 +32,7 @@ namespace SupportHub.Application.Services
                 Username = request.Username,
                 Email = request.Email,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password), // Parolayı hash'leyerek saklıyoruz
-                Role = "Customer" // Varsayılan olarak tüm yeni kullanıcılar "Customer" rolüne sahip olacak
+                Role = "SupportStaff" // Varsayılan olarak tüm yeni kullanıcılar "SupportStaff" rolüne sahip olacak
             };
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
