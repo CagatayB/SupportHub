@@ -19,7 +19,7 @@ namespace SupportHub.Application.Services
             _ticketNotificationService = ticketNotificationService;
         }
 
-        public async Task<TicketDto> CreateTicketAsync(CreateTicketRequest request, string userId)
+        public async Task<TicketDto> CreateTicketAsync(CreateTicketRequest request, int userId)
         {
             var ticket = new Ticket
             {
@@ -67,11 +67,13 @@ namespace SupportHub.Application.Services
 
         public async Task<TicketDto?> GetTicketByIdAsync(int id)
         {
+            // Tek bir sorguda hem join yapıp hem de veriyi getiriyoruz
             var ticket = await _context.Tickets
+                .Include(t => t.CreatedByUser)
+                .Include(t => t.AssignedToUser)
                 .FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted);
 
-            if (ticket == null)
-                return null;
+            if (ticket == null) return null;
 
             return new TicketDto
             {
@@ -83,9 +85,11 @@ namespace SupportHub.Application.Services
                 CreatedAt = ticket.CreatedAt,
                 UpdatedAt = ticket.UpdatedAt,
                 CreatedByUserId = ticket.CreatedByUserId,
-                AssignedToUserId = ticket.AssignedToUserId
+                CreatedByUserName = ticket.CreatedByUser?.Username ?? "Bilinmiyor",
+                AssignedToUserId = ticket.AssignedToUserId,
+                AssignedToUserName = ticket.AssignedToUser?.Username ?? "Henüz Atanmadı"
             };
-            }
+        }
 
         public async Task<bool> UpdateStatusAsync(int ticketId, int status)
         {

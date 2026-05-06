@@ -9,7 +9,10 @@
         public string Priority { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
-        public string CreatedByUserId { get; set; } = string.Empty;
-        public string? AssignedToUserId { get; set; }
+        public int CreatedByUserId { get; set; }
+        public string CreatedByUserName { get; set; } = string.Empty;
+        public int? AssignedToUserId { get; set; }
+        public string? AssignedToUserName { get; set; }
+
     }
 }

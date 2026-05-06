@@ -34,7 +34,7 @@ namespace SupportHub.API.Controllers
         public async Task<IActionResult> Create([FromBody] CreateTicketRequest request)
         {
             // In a real application, you would get the user ID from the authenticated user context
-            var userId = "123"; // In a real application, you would get the user ID from the authenticated user context
+            var userId = 1; // In a real application, you would get the user ID from the authenticated user context
 
             var result = await _ticketService.CreateTicketAsync(request, userId);
             return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
@@ -68,7 +68,7 @@ namespace SupportHub.API.Controllers
 
             if (staffUserId == null) return NotFound();
 
-            var request = new AssignTicketRequest { StaffUserId = staffUserId };
+            var request = new AssignTicketRequest { StaffUserId = int.Parse(staffUserId)};
             var result = await _ticketService.AssignTicketAsync(id, request);
 
             return result ? Ok(new { Message = "Talep başarıyla atandı." }) : NotFound("Talebe ulaşılamadı veya atanamadı.");

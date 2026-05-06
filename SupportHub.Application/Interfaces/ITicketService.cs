@@ -6,7 +6,7 @@ namespace SupportHub.Application.Interfaces
     {
         Task<IEnumerable<TicketDto>> GetAllTicketsAsync();
         Task<TicketDto?> GetTicketByIdAsync(int id);
-        Task<TicketDto> CreateTicketAsync(CreateTicketRequest request, string userId);
+        Task<TicketDto> CreateTicketAsync(CreateTicketRequest request, int userId);
         Task<bool> UpdateStatusAsync(int ticketId, int status);
         Task<bool> AssignTicketAsync(int ticketId, AssignTicketRequest request);
     }

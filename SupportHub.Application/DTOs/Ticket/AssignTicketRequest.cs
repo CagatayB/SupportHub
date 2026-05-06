@@ -6,6 +6,6 @@ namespace SupportHub.Application.DTOs.Ticket
 {
     public class AssignTicketRequest
     {
-        public string StaffUserId { get; set; } = string.Empty;
+        public int StaffUserId { get; set; }
     }
 }

@@ -34,7 +34,7 @@ namespace SupportHub.Client.Services
                 }
                 else
                 {
-                    // Yeni ise listenin başına ekle (Sayaç bu sayede artacaktır)
+                    // Yeni ise listenin başına ekle
                     Tickets.Insert(0, updatedTicket);
                 }
 
@@ -71,7 +71,6 @@ namespace SupportHub.Client.Services
 
         public async Task<List<MessageDto>> GetTicketMessagesAsync(int ticketId)
         {
-            // API tarafında mesajları çeken bir endpoint olduğunu varsayıyoruz
             return await _http.GetFromJsonAsync<List<MessageDto>>($"api/tickets/{ticketId}/messages") ?? new();
         }
 
