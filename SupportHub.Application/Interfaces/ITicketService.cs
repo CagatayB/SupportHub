@@ -8,6 +8,6 @@ namespace SupportHub.Application.Interfaces
         Task<TicketDto?> GetTicketByIdAsync(int id);
         Task<TicketDto> CreateTicketAsync(CreateTicketRequest request, int userId);
         Task<bool> UpdateStatusAsync(int ticketId, int status);
-        Task<bool> AssignTicketAsync(int ticketId, AssignTicketRequest request);
+        Task<bool> AssignTicketAsync(int ticketId, int staffUserId);
     }
 }

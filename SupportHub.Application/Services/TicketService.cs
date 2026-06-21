@@ -126,14 +126,14 @@ namespace SupportHub.Application.Services
             return false;
         }
 
-        public async Task<bool> AssignTicketAsync(int ticketId, AssignTicketRequest request)
+        public async Task<bool> AssignTicketAsync(int ticketId, int StaffUserId)
         {
             var ticket = await _context.Tickets.FindAsync(ticketId);
 
             if (ticket == null) return false;
 
             // Talebi personelle ilişkilendir ve durumunu güncelle
-            ticket.AssignedToUserId = request.StaffUserId;
+            ticket.AssignedToUserId = StaffUserId;
             ticket.Status = TicketStatus.InProgress;
             ticket.UpdatedAt = DateTime.UtcNow;
 

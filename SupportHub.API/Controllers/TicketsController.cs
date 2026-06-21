@@ -4,6 +4,7 @@ using SupportHub.Application.DTOs.Message;
 using SupportHub.Application.DTOs.Ticket;
 using SupportHub.Application.Interfaces;
 using SupportHub.Application.Services;
+using SupportHub.Domain.Entities;
 using System.Security.Claims;
 
 namespace SupportHub.API.Controllers
@@ -60,16 +61,16 @@ namespace SupportHub.API.Controllers
         }
 
 
-        //[Authorize(Roles = "Admin,SupportStaff")]
+        [Authorize(Roles = "Admin,SupportStaff")]
         [HttpPatch("{id}/assign")]
         public async Task<IActionResult> AssignTicket(int id)
         {
-            var staffUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            if (staffUserId == null) return NotFound();
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int StaffUserId))
+                return Unauthorized("Kullanıcı bilgisi alınamadı.");
 
-            var request = new AssignTicketRequest { StaffUserId = int.Parse(staffUserId)};
-            var result = await _ticketService.AssignTicketAsync(id, request);
+            var result = await _ticketService.AssignTicketAsync(id, StaffUserId);
 
             return result ? Ok(new { Message = "Talep başarıyla atandı." }) : NotFound("Talebe ulaşılamadı veya atanamadı.");
         }
