@@ -12,13 +12,16 @@
     <div class="card-body">
         <h3 class="card-title text-center">Giriş Yap</h3>
         <EditForm Model="loginModel" OnValidSubmit="HandleLogin">
+            <DataAnnotationsValidator />
             <div class="mb-3">
-                <label>Kullanıcı Adı</label>
-                <InputText @bind-Value="loginModel.Username" class="form-control" />
+                <label class="form-label">E-posta Adresi</label>
+                <InputText @bind-Value="loginModel.EMail" type="email" class="form-control" placeholder="ornek@mail.com" />
+                <ValidationMessage For="@(() => loginModel.EMail)" class="text-danger small" />
             </div>
             <div class="mb-3">
-                <label>Şifre</label>
+                <label class="form-label">Şifre</label>
                 <InputText @bind-Value="loginModel.Password" type="password" class="form-control" />
+                <ValidationMessage For="@(() => loginModel.Password)" class="text-danger small" />
             </div>
             <button type="submit" class="btn btn-primary w-100">Giriş</button>
         </EditForm>

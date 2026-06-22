@@ -31,8 +31,8 @@ namespace SupportHub.Application.Services
             {
                 Username = request.Username,
                 Email = request.Email,
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password), // Parolayı hash'leyerek saklıyoruz
-                Role = "SupportStaff" // Varsayılan olarak tüm yeni kullanıcılar "SupportStaff" rolüne sahip olacak
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password), // Password stored hashed.
+                Role = "SupportStaff" // By default, all new users will have the "SupportStaff" role.
             };
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
@@ -41,7 +41,7 @@ namespace SupportHub.Application.Services
 
         public async Task<AuthResponse?> LoginAsync(LoginRequest request)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == request.Username);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.EMail);
 
             if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
                 return null;

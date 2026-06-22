@@ -128,7 +128,7 @@ namespace SupportHub.Application.Services
 
         public async Task<bool> AssignTicketAsync(int ticketId, int StaffUserId)
         {
-            var ticket = await _context.Tickets.FindAsync(ticketId);
+            var ticket = await _context.Tickets.FirstOrDefaultAsync(t => t.Id == ticketId);
 
             if (ticket == null) return false;
 
@@ -137,24 +137,23 @@ namespace SupportHub.Application.Services
             ticket.Status = TicketStatus.InProgress;
             ticket.UpdatedAt = DateTime.UtcNow;
 
-            await _context.SaveChangesAsync();
-            
-          
-            // Opsiyonel: SignalR ile Dashboard'u güncellemek için yayın yapabilirsin
-            //await _hubContext.Clients.All.SendAsync("TicketUpdated", new { id = ticket.Id, status = "InProgress" });
-             
+            var result = await _context.SaveChangesAsync();
 
-            await _ticketNotificationService.NotifyTicketUpdated(new TicketDto
+
+            if (result > 0)
             {
-                Id = ticket.Id,
-                Status = ticket.Status.ToString(),
-                Priority = ticket.Priority.ToString(),
-                CreatedAt = ticket.CreatedAt,
-                CreatedByUserId = ticket.CreatedByUserId,
-                AssignedToUserId = ticket.AssignedToUserId
-            });
-
-            return true;
+                await _ticketNotificationService.NotifyTicketUpdated(new TicketDto
+                {
+                    Id = ticket.Id,
+                    Status = ticket.Status.ToString(),
+                    Priority = ticket.Priority.ToString(),
+                    CreatedAt = ticket.CreatedAt,
+                    CreatedByUserId = ticket.CreatedByUserId,
+                    AssignedToUserId = ticket.AssignedToUserId
+                });
+                return true;
+            }
+            return false;
         }
     }
 }
