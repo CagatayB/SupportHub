@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using static SupportHub.Domain.Enums.Enums;
 
 namespace SupportHub.Application.Services
 {
@@ -32,7 +33,7 @@ namespace SupportHub.Application.Services
                 Username = request.Username,
                 Email = request.Email,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password), // Password stored hashed.
-                Role = "SupportStaff" // By default, all new users will have the "SupportStaff" role.
+                Role = UserRole.SupportStaff // By default, all new users will have the "SupportStaff" role.
             };
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
@@ -48,7 +49,7 @@ namespace SupportHub.Application.Services
             
             var token = CreateToken(user);
 
-            return new AuthResponse { Token = token, Username = user.Username, Role = user.Role };
+            return new AuthResponse { Token = token, Username = user.Username, Role = user.Role.ToString() };
         }
 
         private string CreateToken(User user)
@@ -58,8 +59,8 @@ namespace SupportHub.Application.Services
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(ClaimTypes.Name, user.Username),
             new Claim(ClaimTypes.Email, user.Email),
-            new Claim(ClaimTypes.Role, user.Role)
-        };
+            new Claim(ClaimTypes.Role, user.Role.ToString())
+        };  
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Token"]!));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature);

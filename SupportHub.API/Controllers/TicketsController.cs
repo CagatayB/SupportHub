@@ -50,6 +50,7 @@ namespace SupportHub.API.Controllers
             return Ok(ticket);
         }
 
+
         [HttpPost("{ticketId}/messages")]
         public async Task<IActionResult> SendMessage(int ticketId, [FromBody] SendMessageRequest request)
         {
@@ -59,10 +60,10 @@ namespace SupportHub.API.Controllers
             var result = await _messageService.SendMessageAsync(ticketId, request, userId);
             return Ok(result);
         }
-
-
-        [Authorize(Roles = "Admin,SupportStaff")]
+       
+        
         [HttpPatch("{id}/assign")]
+        [Authorize(Roles = "Admin,Manager,TeamLead")]
         public async Task<IActionResult> AssignTicket(int id)
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -86,7 +87,7 @@ namespace SupportHub.API.Controllers
 
 
         [HttpPatch("{id}/status")]
-     // [Authorize(Roles = "Admin,SupportStaff")] // Sadece yetkili personel durum değiştirebilir
+        [Authorize]
         public async Task<IActionResult> UpdateStatus(int id, [FromBody] int status)
         {
             var result = await _ticketService.UpdateStatusAsync(id, status);

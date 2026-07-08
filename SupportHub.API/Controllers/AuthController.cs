@@ -1,6 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using SupportHub.Application.Interfaces;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SupportHub.Application.DTOs.Auth;
+using SupportHub.Application.Interfaces;
 
 namespace SupportHub.API.Controllers
 {
@@ -11,8 +12,16 @@ namespace SupportHub.API.Controllers
         private readonly IAuthService _authService;
         public AuthController(IAuthService authService) => _authService = authService;
 
+        
         [HttpPost("register")]
-        public async Task<ActionResult> Register(RegisterRequest request) => Ok(await _authService.RegisterAsync(request));
+        [Authorize(Roles = "Admin,Manager")]
+        public async Task<ActionResult> Register([FromBody] RegisterRequest request)
+        {
+            var result = await _authService.RegisterAsync(request);
+            return Ok(new { Message = result });
+        }
+
+        //public async Task<ActionResult> Register(RegisterRequest request) => Ok(await _authService.RegisterAsync(request));
 
         [HttpPost("login")]
         public async Task<ActionResult> Login(LoginRequest request)

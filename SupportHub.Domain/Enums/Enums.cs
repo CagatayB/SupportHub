@@ -17,5 +17,13 @@
             High = 3,
             Urgent = 4
         }
+
+        public enum UserRole
+        {
+            Admin = 1,
+            Manager = 2,
+            TeamLead = 3,
+            SupportStaff = 4
+        }
     }
 }

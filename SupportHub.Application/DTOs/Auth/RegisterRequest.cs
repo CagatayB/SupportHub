@@ -1,9 +1,13 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using static SupportHub.Domain.Enums.Enums;
 
 namespace SupportHub.Application.DTOs.Auth
 {
     public class RegisterRequest
     {
+        [Required(ErrorMessage = "Kullanıcı rolü zorunludur.")]
+        public UserRole Role { get; set; }
+
         [Required(ErrorMessage = "Kullanıcı adı zorunludur.")]
         [StringLength(20, MinimumLength = 3, ErrorMessage = "Kullanıcı adı 3-20 karakter arasında olmalıdır.")]
         public string Username { get; set; } = string.Empty;
