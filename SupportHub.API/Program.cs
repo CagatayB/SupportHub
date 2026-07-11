@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SupportHub.Application.Interfaces;
 using SupportHub.Application.Services;
+using SupportHub.Infrastructure.Data;
 using SupportHub.Infrastructure.Hubs;
 using SupportHub.Infrastructure.Persisteance;
 using System.Security.Claims;
@@ -85,5 +86,25 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.MapHub<TicketHub>("/hubs/tickets");
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<SupportHubDbContext>();
+
+        // Eğer bekleyen migration varsa önce onları uygular (Code-First için harikadır)
+        await context.Database.MigrateAsync();
+
+        // Tohumlama işlemini başlat
+        await DataSeeder.SeedUsersAsync(context);
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Veritabanı tohumlanırken bir hata oluştu.");
+    }
+}
 
 app.Run();

@@ -9,11 +9,12 @@ namespace SupportHub.Application.DTOs.Auth
         public UserRole Role { get; set; }
 
         [Required(ErrorMessage = "Kullanıcı adı zorunludur.")]
-        [StringLength(20, MinimumLength = 3, ErrorMessage = "Kullanıcı adı 3-20 karakter arasında olmalıdır.")]
+        [StringLength(128, MinimumLength = 3, ErrorMessage = "Kullanıcı adı 3-128 karakter arasında olmalıdır.")]
         public string Username { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "E-posta adresi zorunludur.")]
         [EmailAddress(ErrorMessage = "Geçerli bir e-posta adresi giriniz.")]
+        [MaxLength(255)]
         public string Email { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Şifre zorunludur.")]
