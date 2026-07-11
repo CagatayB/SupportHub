@@ -87,24 +87,25 @@ app.MapControllers();
 
 app.MapHub<TicketHub>("/hubs/tickets");
 
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    try
-    {
-        var context = services.GetRequiredService<SupportHubDbContext>();
+// Database seeding process
+//using (var scope = app.Services.CreateScope())
+//{
+//    var services = scope.ServiceProvider;
+//    try
+//    {
+//        var context = services.GetRequiredService<SupportHubDbContext>();
 
-        // Eğer bekleyen migration varsa önce onları uygular (Code-First için harikadır)
-        await context.Database.MigrateAsync();
+//        // Eğer bekleyen migration varsa önce onları uygular (Code-First için harikadır)
+//        await context.Database.MigrateAsync();
 
-        // Tohumlama işlemini başlat
-        await DataSeeder.SeedUsersAsync(context);
-    }
-    catch (Exception ex)
-    {
-        var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "Veritabanı tohumlanırken bir hata oluştu.");
-    }
-}
+//        // Tohumlama işlemini başlat
+//        await DataSeeder.SeedUsersAsync(context);
+//    }
+//    catch (Exception ex)
+//    {
+//        var logger = services.GetRequiredService<ILogger<Program>>();
+//        logger.LogError(ex, "Veritabanı tohumlanırken bir hata oluştu.");
+//    }
+//}
 
 app.Run();

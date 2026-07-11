@@ -6,17 +6,24 @@ using System.Text;
 using Microsoft.EntityFrameworkCore;
 using static SupportHub.Domain.Enums.Enums;
 
+// <summary>
+/*
+    This class is responsible for seeding the database with initial user data.
+
+ */
+
+
 namespace SupportHub.Infrastructure.Data
 {
     public static class DataSeeder
     {
         public static async Task SeedUsersAsync(SupportHubDbContext context)
         {
-            // Eğer veritabanında halihazırda kullanıcı varsa, seed işlemini iptal et
+            // If there are already users in the database, cancel the seeding process.
             if (await context.Users.AnyAsync())
                 return;
 
-            // Ortak ve kolay hatırlanabilir bir şifre belirliyoruz
+            // We choose a common and easy-to-remember password.
             string defaultPassword = BCrypt.Net.BCrypt.HashPassword("Test1234!");
 
             var sampleUsers = new List<User>
