@@ -42,8 +42,8 @@ namespace SupportHub.Application.Services
                 TicketId = ticketId,
                 MessageText = request.MessageText,
                 UserId = userId,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now
             };
 
             _context.TicketMessages.Add(message);
@@ -59,7 +59,7 @@ namespace SupportHub.Application.Services
                 IsOwner = true
             };
 
-            // Yeni mesaj gönderildiğinde ilgili ticket'a bağlı tüm kullanıcıları bilgilendir.
+            // When a new message is sent, notify all users associated with the relevant ticket.
             await _notificationService.SendMessageNotificationAsync(ticketId, dto);
 
             return dto;

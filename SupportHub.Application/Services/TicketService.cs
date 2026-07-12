@@ -28,7 +28,7 @@ namespace SupportHub.Application.Services
                 Priority = (TicketPriority)request.Priority,
                 CreatedByUserId = userId,
                 Status = TicketStatus.Open,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now
             };
 
             _context.Tickets.Add(ticket);
@@ -104,7 +104,7 @@ namespace SupportHub.Application.Services
             // 2. Durumu güncelle (Enum casting kullanarak)
             // Not: TicketStatus enum'ının int değerleri ile UI'dan gelen değerlerin eşleştiğinden emin ol
             ticket.Status = (TicketStatus)status;
-            ticket.UpdatedAt = DateTime.UtcNow;
+            ticket.UpdatedAt = DateTime.Now;
 
             // 3. Değişiklikleri kaydet
             var result = await _context.SaveChangesAsync();
@@ -135,7 +135,7 @@ namespace SupportHub.Application.Services
             // Talebi personelle ilişkilendir ve durumunu güncelle
             ticket.AssignedToUserId = StaffUserId;
             ticket.Status = TicketStatus.InProgress;
-            ticket.UpdatedAt = DateTime.UtcNow;
+            ticket.UpdatedAt = DateTime.Now;
 
             var result = await _context.SaveChangesAsync();
 

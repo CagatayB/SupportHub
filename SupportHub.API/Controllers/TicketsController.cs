@@ -32,7 +32,7 @@ namespace SupportHub.API.Controllers
 
 
         [HttpPost]
-        [Authorize] //Only users who are logged into the system (and have the Token) can submit requests.
+        [Authorize]
         public async Task<IActionResult> Create([FromBody] CreateTicketRequest request)
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;

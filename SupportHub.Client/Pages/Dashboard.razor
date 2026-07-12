@@ -107,9 +107,8 @@
     </div>
 </div>
 
-<!-- ================================================================================= -->
-<!-- POPUP MODAL: YENİ TALEP OLUŞTURMA -->
-<!-- ================================================================================= -->
+
+<!-- POPUP MODAL:  ticket create -->
 @if (showCreateModal)
 {
     <div class="modal fade show d-block animate-fade-in" tabindex="-1" role="dialog" style="background-color: rgba(0,0,0,0.5); backdrop-filter: blur(4px);">
@@ -130,21 +129,21 @@
 
                         <!-- Başlık -->
                         <div class="mb-3">
-                            <label class="form-label fw-semibold small text-muted">Talep Başlığı</label>
-                            <InputText @bind-Value="ticketModel.Title" class="form-control form-control-lg rounded-2 fs-6" placeholder="Örn: Sunucu bağlantı hatası alıyorum" />
+                            <label class="form-label fw-semibold small text-muted">Ticket Title</label>
+                            <InputText @bind-Value="ticketModel.Title" class="form-control form-control-lg rounded-2 fs-6" placeholder="Example: I'm getting a server connection error." />
                             <ValidationMessage For="@(() => ticketModel.Title)" class="text-danger small" />
                         </div>
 
                         <!-- Açıklama -->
                         <div class="mb-3">
-                            <label class="form-label fw-semibold small text-muted">Detaylı Açıklama</label>
-                            <InputTextArea @bind-Value="ticketModel.Description" class="form-control rounded-2" rows="4" placeholder="Hatanın adımlarını veya talebinizi detaylandırın..." />
+                            <label class="form-label fw-semibold small text-muted">Detailed Description</label>
+                            <InputTextArea @bind-Value="ticketModel.Description" class="form-control rounded-2" rows="4" placeholder="Example: I'm getting a server connection error." />
                             <ValidationMessage For="@(() => ticketModel.Description)" class="text-danger small" />
                         </div>
 
                         <!-- Öncelik Durumu -->
                         <div class="mb-3">
-                            <label class="form-label fw-semibold small text-muted">Öncelik Derecesi</label>
+                            <label class="form-label fw-semibold small text-muted">Priority Level</label>
                             <InputSelect @bind-Value="ticketModel.Priority" class="form-select rounded-2">
                                 @foreach (var priority in Enum.GetValues(typeof(TicketPriority)))
                                 {
@@ -155,17 +154,17 @@
                     </div>
 
                     <div class="modal-footer bg-light border-top-0 justify-content-end gap-2 px-4 py-3 rounded-bottom-3">
-                        <button type="button" class="btn btn-outline-secondary px-4" @onclick="CloseCreateModal" disabled="@isSubmitting">İptal</button>
+                        <button type="button" class="btn btn-outline-secondary px-4" @onclick="CloseCreateModal" disabled="@isSubmitting">Cancel</button>
                         <button type="submit" class="btn btn-primary px-4 d-flex align-items-center gap-2" disabled="@isSubmitting">
                             @if (isSubmitting)
                             {
                                 <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                                <span>Gönderiliyor...</span>
+                                <span>Submitting...</span>
                             }
                             else
                             {
                                 <i class="bi bi-send-fill"></i>
-                                <span>Talebi Gönder</span>
+                                <span>Submit Ticket</span>
                             }
                         </button>
                     </div>

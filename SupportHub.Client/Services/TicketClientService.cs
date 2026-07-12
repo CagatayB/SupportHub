@@ -29,12 +29,12 @@ namespace SupportHub.Client.Services
 
                 if (index != -1)
                 {
-                    // Mevcut ise güncelle
+                    // Update existing ticket in the list
                     Tickets[index] = updatedTicket;
                 }
                 else
                 {
-                    // Yeni ise listenin başına ekle
+                    // add new ticket to the list if it doesn't exist
                     Tickets.Insert(0, updatedTicket);
                 }
 
