@@ -1,61 +1,187 @@
 ﻿@page "/dashboard"
 @using SupportHub.Client.Services
+@using static SupportHub.Domain.Enums.Enums
+@using SupportHub.Application.DTOs.Ticket
+@using SupportHub.Domain.Enums // Projendeki enum dizinine göre burayı güncelleyebilirsin
 @inject TicketClientService TicketService
 @implements IAsyncDisposable
 
-<h3>📊 Destek Dashboard</h3>
+<div class="container-fluid mt-4">
+    <!-- Üst Bar -->
+    <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
+        <div>
+            <h2 class="fw-bold text-dark mb-0">📊 Destek Paneli</h2>
+            <small class="text-muted">Sistemdeki genel durum ve anlık talepler</small>
+        </div>
+        <button class="btn btn-primary btn-lg shadow-sm d-flex align-items-center gap-2 transition-all" @onclick="OpenCreateModal">
+            <i class="bi bi-plus-circle-fill"></i> Yeni Talep Oluştur
+        </button>
+    </div>
 
-<div class="row mb-4">
-    <div class="col-md-4">
-        <div class="card bg-primary text-white p-3">
-            <h5>Toplam Talep</h5>
-            <h2>@TicketService.Tickets.Count</h2>
+    <!-- Akıcı İstatistik Kartları -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm bg-gradient bg-primary text-white p-4 rounded-3 position-relative overflow-hidden">
+                <div class="position-absolute end-0 bottom-0 opacity-10 mb-n2 me-n2" style="font-size: 5rem;">
+                    <i class="bi bi-folder-fill"></i>
+                </div>
+                <h6 class="text-uppercase fw-semibold text-white-50 small mb-1">Toplam Talep</h6>
+                <h2 class="display-6 fw-bold mb-0">@TicketService.Tickets.Count</h2>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm bg-gradient bg-warning text-dark p-4 rounded-3 position-relative overflow-hidden">
+                <div class="position-absolute end-0 bottom-0 opacity-10 mb-n2 me-n2" style="font-size: 5rem;">
+                    <i class="bi bi-exclamation-circle-fill"></i>
+                </div>
+                <h6 class="text-uppercase fw-semibold text-dark-50 small mb-1">Açık Talepler</h6>
+                <h2 class="display-6 fw-bold mb-0">@TicketService.Tickets.Count(t => t.Status == "Open")</h2>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm bg-gradient bg-success text-white p-4 rounded-3 position-relative overflow-hidden">
+                <div class="position-absolute end-0 bottom-0 opacity-10 mb-n2 me-n2" style="font-size: 5rem;">
+                    <i class="bi bi-check-circle-fill"></i>
+                </div>
+                <h6 class="text-uppercase fw-semibold text-white-50 small mb-1">Çözülenler</h6>
+                <h2 class="display-6 fw-bold mb-0">@TicketService.Tickets.Count(t => t.Status == "Resolved")</h2>
+            </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card bg-warning text-dark p-3">
-            <h5>Açık Talepler</h5>
-            <h2>@TicketService.Tickets.Count(t => t.Status == "Open")</h2>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card bg-success text-white p-3">
-            <h5>Çözülenler</h5>
-            <h2>@TicketService.Tickets.Count(t => t.Status == "Resolved")</h2>
+
+    <!-- Talep Listesi -->
+    <div class="card border-0 shadow-sm rounded-3">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light text-muted uppercase small">
+                        <tr>
+                            <th class="ps-4">ID</th>
+                            <th>Başlık</th>
+                            <th>Durum</th>
+                            <th>Öncelik</th>
+                            <th class="text-end pe-4">İşlem</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!TicketService.Tickets.Any())
+                        {
+                            <tr>
+                                <td colspan="5" class="text-center py-5 text-muted">
+                                    <i class="bi bi-inbox display-6 d-block mb-2"></i>
+                                    Henüz hiç talep oluşturulmamış.
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var ticket in TicketService.Tickets)
+                            {
+                                <tr>
+                                    <td class="ps-4 fw-bold text-secondary">#@ticket.Id</td>
+                                    <td>
+                                        <span class="fw-semibold text-dark">@ticket.Title</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge rounded-pill px-3 py-2 @GetStatusClass(ticket.Status)">
+                                            @ticket.Status
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark border px-2 py-1 small">
+                                            @ticket.Priority
+                                        </span>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <button class="btn btn-sm btn-outline-secondary rounded-2 px-3" @onclick="@(() => GoToDetail(ticket.Id))">
+                                            <i class="bi bi-arrow-right-short"></i> Detay
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
 
-<table class="table table-hover">
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Başlık</th>
-            <th>Durum</th>
-            <th>Öncelik</th>
-            <th>İşlem</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var ticket in TicketService.Tickets)
-        {
-            <tr>
-                <td>#@ticket.Id</td>
-                <td>@ticket.Title</td>
-                <td><span class="badge @GetStatusClass(ticket.Status)">@ticket.Status</span></td>
-                <td>@ticket.Priority</td>
-                <td>
-                    <button class="btn btn-sm btn-outline-info" @onclick="@(() => GoToDetail(ticket.Id))">
-                        <i class="bi bi-eye"></i> Detay
-                    </button>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+<!-- ================================================================================= -->
+<!-- POPUP MODAL: YENİ TALEP OLUŞTURMA -->
+<!-- ================================================================================= -->
+@if (showCreateModal)
+{
+    <div class="modal fade show d-block animate-fade-in" tabindex="-1" role="dialog" style="background-color: rgba(0,0,0,0.5); backdrop-filter: blur(4px);">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content border-0 shadow-lg rounded-3">
+                <div class="modal-header bg-light border-bottom-0 pt-4 px-4">
+                    <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2">
+                        <i class="bi bi-pencil-square text-primary"></i> Yeni Destek Talebi Aç
+                    </h5>
+                    <button type="button" class="btn-close" aria-label="Close" @onclick="CloseCreateModal" disabled="@isSubmitting"></button>
+                </div>
+
+                <EditForm Model="@ticketModel" OnValidSubmit="HandleCreateTicket">
+                    <DataAnnotationsValidator />
+
+                    <div class="modal-body px-4 pb-4">
+                        <ValidationSummary class="text-danger small mb-3" />
+
+                        <!-- Başlık -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small text-muted">Talep Başlığı</label>
+                            <InputText @bind-Value="ticketModel.Title" class="form-control form-control-lg rounded-2 fs-6" placeholder="Örn: Sunucu bağlantı hatası alıyorum" />
+                            <ValidationMessage For="@(() => ticketModel.Title)" class="text-danger small" />
+                        </div>
+
+                        <!-- Açıklama -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small text-muted">Detaylı Açıklama</label>
+                            <InputTextArea @bind-Value="ticketModel.Description" class="form-control rounded-2" rows="4" placeholder="Hatanın adımlarını veya talebinizi detaylandırın..." />
+                            <ValidationMessage For="@(() => ticketModel.Description)" class="text-danger small" />
+                        </div>
+
+                        <!-- Öncelik Durumu -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small text-muted">Öncelik Derecesi</label>
+                            <InputSelect @bind-Value="ticketModel.Priority" class="form-select rounded-2">
+                                @foreach (var priority in Enum.GetValues(typeof(TicketPriority)))
+                                {
+                                    <option value="@priority">@priority.ToString()</option>
+                                }
+                            </InputSelect>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer bg-light border-top-0 justify-content-end gap-2 px-4 py-3 rounded-bottom-3">
+                        <button type="button" class="btn btn-outline-secondary px-4" @onclick="CloseCreateModal" disabled="@isSubmitting">İptal</button>
+                        <button type="submit" class="btn btn-primary px-4 d-flex align-items-center gap-2" disabled="@isSubmitting">
+                            @if (isSubmitting)
+                            {
+                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                <span>Gönderiliyor...</span>
+                            }
+                            else
+                            {
+                                <i class="bi bi-send-fill"></i>
+                                <span>Talebi Gönder</span>
+                            }
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+}
 
 @code {
     [Inject] NavigationManager Nav { get; set; } = null!;
+
+    // Modal Durum Yönetimi değişkenleri
+    private bool showCreateModal = false;
+    private bool isSubmitting = false;
+    private CreateTicketRequest ticketModel = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -63,20 +189,53 @@
         await TicketService.StartAsync();
         await TicketService.LoadTicketsAsync();
     }
+
     private void NotifyStateChanged() => InvokeAsync(StateHasChanged);
 
     private string GetStatusClass(string status) => status switch
     {
-        "Open" => "bg-danger",
-        "InProgress" => "bg-warning",
-        "Resolved" => "bg-success",
-        _ => "bg-secondary"
+        "Open" => "bg-danger text-white",
+        "InProgress" => "bg-warning text-dark",
+        "Resolved" => "bg-success text-white",
+        _ => "bg-secondary text-white"
     };
 
     private void GoToDetail(int id)
     {
-        // Rota: /ticket/{id}
         Nav.NavigateTo($"/ticket/{id}");
+    }
+
+    // Modal Kontrolleri
+    private void OpenCreateModal()
+    {
+        ticketModel = new CreateTicketRequest { Priority = TicketPriority.Medium }; // Varsayılan değer set edilebilir
+        showCreateModal = true;
+    }
+
+    private void CloseCreateModal()
+    {
+        if (isSubmitting) return; // İstek atılırken popup kapatılmasın
+        showCreateModal = false;
+    }
+
+    private async Task HandleCreateTicket()
+    {
+        isSubmitting = true;
+
+        // TicketClientService'e az önce yazdığımız Create metodunu çağırıyoruz
+        var result = await TicketService.CreateTicketAsync(ticketModel);
+
+        isSubmitting = false;
+
+        if (result != null)
+        {
+            showCreateModal = false; // Başarılıysa modalı kapat
+            await TicketService.LoadTicketsAsync(); // Listeyi anında yenile
+        }
+        else
+        {
+            // İsteğe bağlı: UI üzerinde genel bir hata mesajı tetiklenebilir
+        }
     }
 
     public async ValueTask DisposeAsync()

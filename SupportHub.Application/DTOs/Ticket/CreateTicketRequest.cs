@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using static SupportHub.Domain.Enums.Enums;
 
 namespace SupportHub.Application.DTOs.Ticket
 {
@@ -8,6 +9,6 @@ namespace SupportHub.Application.DTOs.Ticket
     {
         public string Title { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
-        public int Priority { get; set; }
+        public TicketPriority Priority { get; set; }
     }
 }

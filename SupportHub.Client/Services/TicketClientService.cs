@@ -58,6 +58,19 @@ namespace SupportHub.Client.Services
             }
         }
 
+        public async Task<TicketDto?> CreateTicketAsync(CreateTicketRequest request)
+            {
+                // API'ye token'ın otomatik eklenmesi için HttpClient konfigürasyonunuzun (örneğin bir DelegatingHandler ile) yapıldığını varsayıyoruz.
+                var response = await _http.PostAsJsonAsync("api/tickets", request);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadFromJsonAsync<TicketDto>();
+                }
+
+                return null;
+            }
+
         public async Task LoadTicketsAsync()
         {
             Tickets = await _http.GetFromJsonAsync<List<TicketDto>>("api/tickets") ?? new();

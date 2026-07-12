@@ -1,0 +1,90 @@
+﻿@page "/tickets/create"
+@using SupportHub.Application.DTOs.Ticket
+@using SupportHub.Client.Services
+@using static SupportHub.Domain.Enums.Enums @* Enum'ların yer aldığı namespace *@
+@inject TicketClientService TicketService
+@inject NavigationManager Navigation
+
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0">Yeni Destek Talebi Oluştur</h3>
+        </div>
+        <div class="card-body">
+            <EditForm Model="@ticketModel" OnValidSubmit="HandleSubmit">
+                <DataAnnotationsValidator />
+                <ValidationSummary class="text-danger mb-3" />
+
+                <!-- Başlık -->
+                <div class="mb-3">
+                    <label class="form-label font-weight-bold">Başlık</label>
+                    <InputText @bind-Value="ticketModel.Title" class="form-control" placeholder="Sorunu kısaca özetleyin..." />
+                    <ValidationMessage For="@(() => ticketModel.Title)" class="text-danger" />
+                </div>
+
+                <!-- Açıklama -->
+                <div class="mb-3">
+                    <label class="form-label font-weight-bold">Açıklama</label>
+                    <InputTextArea @bind-Value="ticketModel.Description" class="form-control" rows="5" placeholder="Yaşadığınız problemi detaylıca anlatın..." />
+                    <ValidationMessage For="@(() => ticketModel.Description)" class="text-danger" />
+                </div>
+
+                <!-- Öncelik Durumu -->
+                <div class="mb-3">
+                    <label class="form-label font-weight-bold">Öncelik Derecesi</label>
+                    <InputSelect @bind-Value="ticketModel.Priority" class="form-control">
+                        @foreach (var priority in Enum.GetValues(typeof(TicketPriority)))
+                        {
+                            <option value="@priority">@priority.ToString()</option>
+                        }
+                    </InputSelect>
+                </div>
+
+                <!-- Butonlar -->
+                <div class="d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-secondary" @onclick="Cancel">İptal</button>
+                    <button type="submit" class="btn btn-success" disabled="@isSubmitting">
+                        @if (isSubmitting)
+                        {
+                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                            <span> Gönderiliyor...</span>
+                        }
+                        else
+                        {
+                            <span>Talebi Gönder</span>
+                        }
+                    </button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+@code {
+    private CreateTicketRequest ticketModel = new();
+    private bool isSubmitting = false;
+
+    private async Task HandleSubmit()
+    {
+        isSubmitting = true;
+
+        var createdTicket = await TicketService.CreateTicketAsync(ticketModel);
+
+        isSubmitting = false;
+
+        if (createdTicket != null)
+        {
+            // Başarıyla oluşturulduysa detay sayfasına veya listeye yönlendir
+            Navigation.NavigateTo($"/tickets/{createdTicket.Id}");
+        }
+        else
+        {
+            // Hata yönetimi (Kullanıcıya bildirim gösterilebilir)
+        }
+    }
+
+    private void Cancel()
+    {
+        Navigation.NavigateTo("/tickets");
+    }
+}

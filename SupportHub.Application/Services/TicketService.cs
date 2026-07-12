@@ -42,8 +42,8 @@ namespace SupportHub.Application.Services
                 Priority = ticket.Priority.ToString(),
                 CreatedAt = ticket.CreatedAt
             };
-
-            // Hub yerine interface üzerinden çağırıyoruz
+            
+            // Notify the relevant parties about the new ticket creation
             await _ticketNotificationService.NotifyTicketCreated(dto);
 
             return dto;

@@ -30,14 +30,20 @@ namespace SupportHub.API.Controllers
             return Ok(messages);
         }
 
-        //[Authorize]
+
         [HttpPost]
+        [Authorize] //Only users who are logged into the system (and have the Token) can submit requests.
         public async Task<IActionResult> Create([FromBody] CreateTicketRequest request)
         {
-            // In a real application, you would get the user ID from the authenticated user context
-            var userId = 1; // In a real application, you would get the user ID from the authenticated user context
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+            { 
+                return Unauthorized("User information could not be retrieved.");
+            }    
+            
             var result = await _ticketService.CreateTicketAsync(request, userId);
+            
             return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
         }
 
