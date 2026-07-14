@@ -1,4 +1,5 @@
-﻿@using Microsoft.AspNetCore.Components.Authorization
+﻿@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
 @using SupportHub.Client.Auth
 @using SupportHub.Client.Services
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
@@ -36,7 +37,11 @@
             <div class="d-flex align-items-center">
                 <AuthorizeView>
                     <Authorized>
-                        <span class="text-light me-3 small">Hoş geldin, <strong>@context.User.Identity?.Name</strong></span>
+                        <span class="text-light me-3 small">
+                            Hoş geldin,
+                            <strong>@(context.User.FindFirst(ClaimTypes.Name)?.Value ?? context.User.FindFirst("name")?.Value ?? context.User.FindFirst("unique_name")?.Value)</strong>
+                        </span>
+
                         <button class="btn btn-sm btn-outline-light" @onclick="HandleLogout">Çıkış Yap</button>
                     </Authorized>
                     <NotAuthorized>
