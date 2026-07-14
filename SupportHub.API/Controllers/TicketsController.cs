@@ -58,10 +58,16 @@ namespace SupportHub.API.Controllers
 
 
         [HttpPost("{ticketId}/messages")]
+        [Authorize]
         public async Task<IActionResult> SendMessage(int ticketId, [FromBody] SendMessageRequest request)
         {
-            // Şimdilik test ID'si, Auth sonrası User.FindFirstValue(ClaimTypes.NameIdentifier) olacak
-            string userId = "123";
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+            {
+                return Unauthorized("User identity could not be verified.");
+            }
+
 
             var result = await _messageService.SendMessageAsync(ticketId, request, userId);
             return Ok(result);
@@ -69,7 +75,7 @@ namespace SupportHub.API.Controllers
        
         
         [HttpPatch("{id}/assign")]
-        [Authorize(Roles = "Admin,Manager,TeamLead")]
+        [Authorize]
         public async Task<IActionResult> AssignTicket(int id)
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;

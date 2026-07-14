@@ -3,8 +3,11 @@
 @using SupportHub.Application.DTOs.Message
 @using SupportHub.Application.DTOs.Ticket
 @using SupportHub.Client.Services
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
 @inject TicketClientService TicketService
 @inject NavigationManager Nav
+@inject AuthenticationStateProvider AuthStateProvider
 @implements IAsyncDisposable
 
 <div class="container-fluid py-4">
@@ -30,17 +33,24 @@
                 <div class="card-header bg-white py-3 border-bottom">
                     <h5 class="mb-0"><i class="bi bi-chat-dots me-2 text-primary"></i>İşlem Geçmişi</h5>
                 </div>
-                
+
+                <div class="alert alert-warning">
+                    Benim ID'm: @currentUserId
+                    </div>
+    
                 <div class="card-body overflow-auto bg-light p-4" id="chatContainer">
                     @foreach (var msg in messages)
                     {
-                        <div class="d-flex mb-4 @(msg.IsOwner ? "justify-content-end" : "justify-content-start")">
+                        @* isOwner check. *@
+                        var isOwner = msg.UserId == currentUserId;
+
+                        <div class="d-flex mb-4 @(isOwner ? "justify-content-end" : "justify-content-start")">
                             <div class="max-w-75">
-                                <div class="small text-muted mb-1 @(msg.IsOwner ? "text-end" : "")">
-                                    <strong>@msg.UserName</strong> • @msg.CreatedAt.ToString("HH:mm")
+                                <div class="small text-muted mb-1 @(isOwner ? "text-end" : "")">
+                                    <strong>@msg.UserName</strong> • @msg.CreatedAt.ToLocalTime().ToString("HH:mm")
                                 </div>
-                                <div class="p-3 rounded-3 shadow-sm @(msg.IsOwner ? "bg-primary text-white" : "bg-white text-dark")" 
-                                     style="border-radius: @(msg.IsOwner ? "15px 15px 0 15px" : "15px 15px 15px 0") !important;">
+                                <div class="p-3 rounded-3 shadow-sm @(isOwner ? "bg-primary text-white" : "bg-white text-dark")"
+                                     style="border-radius: @(isOwner ? "15px 15px 0 15px" : "15px 15px 15px 0") !important;">
                                     @msg.MessageText
                                 </div>
                             </div>
@@ -50,7 +60,7 @@
 
                 <div class="card-footer bg-white border-top-0 py-3">
                     <div class="input-group input-group-lg">
-                        <input type="text" class="form-control border-2" 
+                        <input type="text" class="form-control border-2"
                                @bind="newMessage" @onkeyup="HandleKeyPress"
                                placeholder="Mesajınızı buraya yazın..." />
                         <button class="btn btn-primary px-4" @onclick="SendMessage">
@@ -68,11 +78,11 @@
                     <ul class="list-unstyled">
                         <li class="mb-3 d-flex justify-content-between">
                             <span class="text-muted">Oluşturulma:</span>
-                            <span>@currentTicket?.CreatedAt.ToString("dd.MM.yyyy HH:mm")</span>
+                            <span>@currentTicket?.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</span>
                         </li>
                         <li class="mb-3 d-flex justify-content-between">
                             <span class="text-muted">Son Güncelleme:</span>
-                            <span>@(currentTicket?.UpdatedAt?.ToString("dd.MM.yyyy HH:mm") ?? "Henüz güncellenmedi")</span>
+                            <span>@(currentTicket?.UpdatedAt?.ToLocalTime().ToString("dd.MM.yyyy HH:mm") ?? "Henüz güncellenmedi")</span>
                         </li>
                         <li class="mb-3 d-flex justify-content-between">
                             <span class="text-muted">Müşteri:</span>
@@ -85,57 +95,46 @@
                 </div>
             </div>
 
-            @* <AuthorizeView Roles="Admin,SupportStaff"> *@
-    <div class="card shadow-sm border-0 bg-dark text-white overflow-hidden">
-        <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 class="text-uppercase fw-bold mb-0 text-info">Yönetim Paneli</h6>
-                @if (isUpdating)
-                {
-                    <div class="spinner-border spinner-border-sm text-info" role="status"></div>
-                }
-            </div>
-            
-            <div class="mb-3">
-                <label class="small mb-2 text-light-50">Durumu Güncelle</label>
-                <select class="form-select bg-secondary text-white border-0" 
-                        @onchange="OnStatusChanged" 
-                        disabled="@isUpdating">
-                    <option value="1" selected='@(currentTicket?.Status == "Open")'>Açık</option>
-                    <option value="2" selected='@(currentTicket?.Status == "In Progress")'>İşleniyor</option>
-                    <option value="3" selected='@(currentTicket?.Status == "Resolved")'>Çözüldü</option>
-                    <option value="4" selected='@(currentTicket?.Status == "Closed")'>Kapatıldı</option>
-                </select>
-            </div>
+            <div class="card shadow-sm border-0 bg-dark text-white overflow-hidden">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="text-uppercase fw-bold mb-0 text-info">Yönetim Paneli</h6>
+                        @if (isUpdating)
+                        {
+                            <div class="spinner-border spinner-border-sm text-info" role="status"></div>
+                        }
+                    </div>
 
-            @* <AuthorizeView Roles="Admin,SupportStaff"> *@
-    @if (currentTicket?.AssignedToUserId == null)
-    {
-        <div class="mt-3 p-3 bg-light border rounded">
-            <p class="small text-muted">Bu talep henüz bir personele atanmamış.</p>
-            <button class="btn btn-primary w-100 fw-bold" @onclick="HandleAssign">
-                <i class="bi bi-person-check me-2"></i>Talebi Üzerime Al
-            </button>
-        </div>
-    }
-    else
-    {
-        <div class="mt-3 p-2 bg-success bg-opacity-10 text-success border border-success rounded small">
-            <i class="bi bi-check-circle-fill me-2"></i>
-            @if (!string.IsNullOrEmpty(currentTicket?.AssignedToUserName)) // Yeni eklediğimiz isim alanı
-            {
-                                <span>Bu talep <strong>@currentTicket.AssignedToUserName</strong> tarafından devralındı.</span>
-            }
-            else if (currentTicket?.AssignedToUserId != null)
-            {
-                                <span>Bu talep <strong>@currentTicket.AssignedToUserName</strong> tarafından devralındı.</span>
-            }
-        </div>
-    }
-@* </AuthorizeView> *@
-        </div>
-    </div>
-@* </AuthorizeView> *@
+                    <div class="mb-3">
+                        <label class="small mb-2 text-light-50">Durumu Güncelle</label>
+                        <select class="form-select bg-secondary text-white border-0"
+                                @onchange="OnStatusChanged"
+                                disabled="@isUpdating">
+                            <option value="1" selected='@(currentTicket?.Status == "Open")'>Açık</option>
+                            <option value="2" selected='@(currentTicket?.Status == "InProgress")'>İşleniyor</option>
+                            <option value="3" selected='@(currentTicket?.Status == "Resolved")'>Çözüldü</option>
+                            <option value="4" selected='@(currentTicket?.Status == "Closed")'>Kapatıldı</option>
+                        </select>
+                    </div>
+
+                    @if (currentTicket?.AssignedToUserId == null)
+                    {
+                        <div class="mt-3 p-3 bg-light border rounded text-dark">
+                            <p class="small text-muted">Bu talep henüz bir personele atanmamış.</p>
+                            <button class="btn btn-primary w-100 fw-bold" @onclick="HandleAssign">
+                                <i class="bi bi-person-check me-2"></i>Talebi Üzerime Al
+                            </button>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="mt-3 p-2 bg-success bg-opacity-10 text-success border border-success rounded small">
+                            <i class="bi bi-check-circle-fill me-2"></i>
+                            <span>Bu talep <strong>@currentTicket.AssignedToUserName</strong> tarafından devralındı.</span>
+                        </div>
+                    }
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -145,7 +144,10 @@
     private TicketDto? currentTicket;
     private List<MessageDto> messages = new();
     private string newMessage = "";
+    private int currentUserId; // ID of the currently logged-in user
+    private bool isUpdating = false;
 
+    // Determine the CSS class for the status badge based on the ticket's status
     private string GetStatusClass(string? status) => status switch
     {
         "Open" => "bg-danger",
@@ -154,6 +156,7 @@
         _ => "bg-secondary"
     };
 
+    // Determine the CSS class for the priority badge based on the ticket's priority
     private string GetPriorityClass(string? priority) => priority switch
     {
         "High" or "Urgent" => "bg-danger text-white",
@@ -161,8 +164,7 @@
         _ => "bg-light text-dark border"
     };
 
-    private bool isUpdating = false;
-
+    // Handle status change from the dropdown
     private async Task OnStatusChanged(ChangeEventArgs e)
     {
         if (int.TryParse(e.Value?.ToString(), out int newStatus))
@@ -170,25 +172,19 @@
             isUpdating = true;
             StateHasChanged();
 
-            // API'ye PATCH isteği gönderiyoruz
             var success = await TicketService.UpdateStatusAsync(Id, newStatus);
-        
-            if (success)
+
+            if (success && currentTicket != null)
             {
-                // UI'daki mevcut ticket objesini güncelle (SignalR yayınından önce anlık feedback)
-                if (currentTicket != null)
-                {
-                    currentTicket.Status = GetStatusName(newStatus);
-                }
-            
-                // Opsiyonel: "Durum Güncellendi" şeklinde bir bildirim/toast gösterilebilir.
+                currentTicket.Status = GetStatusName(newStatus);
             }
-        
+
             isUpdating = false;
             StateHasChanged();
         }
     }
 
+    // Convert status integer to its corresponding string representation
     private string GetStatusName(int status) => status switch
     {
         1 => "Open",
@@ -198,36 +194,43 @@
         _ => "Unknown"
     };
 
-
+    // Component initialization logic
     protected override async Task OnInitializedAsync()
     {
-        // Talebi ve eski mesajları yükle
+        // 1. ADIM: Token'dan giriş yapmış kullanıcının ID'sini çekiyoruz
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var userIdClaim = user.FindFirst("nameid")?.Value;
+
+
+        if (int.TryParse(userIdClaim, out int parsedId))
+        {
+            currentUserId = parsedId;
+        }
+
+        // 2. ADIM: Talebi ve eski mesajları yükle
         currentTicket = await TicketService.GetTicketDetailAsync(Id);
         messages = await TicketService.GetTicketMessagesAsync(Id);
 
         await TicketService.StartAsync();
 
-
         if (TicketService.HubConnection.State == HubConnectionState.Connected)
         {
             await JoinGroup();
         }
-
         else
         {
-            // Retry logic
             int retryCount = 0;
             while (TicketService.HubConnection.State != HubConnectionState.Connected && retryCount < 10)
             {
                 await Task.Delay(500);
                 retryCount++;
             }
-        
+
             if (TicketService.HubConnection.State == HubConnectionState.Connected)
                 await JoinGroup();
         }
 
-        // Mesaj dinleyiciyi her durumda kur
         TicketService.HubConnection.On<MessageDto>("ReceiveMessage", (msg) =>
         {
             if (msg.TicketId == Id)
@@ -238,13 +241,13 @@
         });
     }
 
+    // Join the SignalR group for this ticket
     private async Task JoinGroup()
     {
         await TicketService.HubConnection.InvokeAsync("JoinTicketGroup", Id);
     }
 
-
-    // Mesaj gönderme işlemi
+    // Send a new message to the ticket
     private async Task SendMessage()
     {
         if (!string.IsNullOrWhiteSpace(newMessage))
@@ -254,6 +257,7 @@
         }
     }
 
+    // Handle the ticket assignment to the current user
     private async Task HandleAssign()
     {
         var success = await TicketService.AssignTicketAsync(Id);
@@ -268,15 +272,17 @@
         }
     }
 
+    // Handle the Enter key press to send the message
     private async Task HandleKeyPress(KeyboardEventArgs e)
     {
         if (e.Key == "Enter") await SendMessage();
     }
 
+
+    // leave the SignalR group when the component is disposed
     public async ValueTask DisposeAsync()
     {
-        // Sayfadan ayrılırken SignalR grubundan çık
-        if (TicketService.HubConnection is not null)
+        if (TicketService.HubConnection is not null && TicketService.HubConnection.State == HubConnectionState.Connected)
             await TicketService.HubConnection.InvokeAsync("LeaveTicketGroup", Id);
     }
 }

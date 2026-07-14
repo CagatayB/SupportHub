@@ -19,24 +19,41 @@ namespace SupportHub.Application.Services
 
         public async Task<List<MessageDto>> GetMessagesByTicketIdAsync(int ticketId)
         {
-            return await _context.TicketMessages
-                .Where(m => m.TicketId == ticketId && !m.IsDeleted)
-                .OrderBy(m => m.CreatedAt)
-                .Select(m => new MessageDto
-                {
-                    Id = m.Id,
-                    TicketId = m.TicketId,
-                    MessageText = m.MessageText,
-                    UserName = "Kullanıcı " + m.UserId, // İleride Identity ile gerçek isim gelecek
-                    CreatedAt = m.CreatedAt,
-                    UpdatedAt = m.UpdatedAt,
-                    IsOwner = false // Auth eklenince düzelecek
-                })
-                .ToListAsync();
+            var query = from m in _context.TicketMessages
+                        join u in _context.Users on m.UserId equals u.Id
+                        where m.TicketId == ticketId && !m.IsDeleted
+                        orderby m.CreatedAt
+                        select new MessageDto
+                        {
+                            Id = m.Id,
+                            TicketId = m.TicketId,
+                            UserId = m.UserId,     
+                            UserName = u.Username,
+                            MessageText = m.MessageText,
+                            CreatedAt = m.CreatedAt,
+                            UpdatedAt = m.UpdatedAt
+                        };
+            return await query.ToListAsync();
         }
 
-        public async Task<MessageDto> SendMessageAsync(int ticketId, SendMessageRequest request, string userId)
+        public async Task<MessageDto> SendMessageAsync(int ticketId, SendMessageRequest request, int userId)
         {
+
+            var ticketExists = await _context.Tickets.AnyAsync(t => t.Id == ticketId && !t.IsDeleted);
+            if (!ticketExists)
+            {
+                throw new Exception("Ticket not found.");
+            }
+
+            var userExists = await _context.Users
+                .Select(u => new {u.Id, u.Username })
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            if(userExists == null)
+            {
+                throw new Exception("User not found.");
+            }
+
             var message = new TicketMessage
             {
                 TicketId = ticketId,
@@ -54,9 +71,9 @@ namespace SupportHub.Application.Services
                 Id = message.Id,
                 TicketId = message.TicketId,
                 MessageText = message.MessageText,
-                UserName = "User",
-                CreatedAt = message.CreatedAt,
-                IsOwner = true
+                UserId = message.UserId,
+                UserName = userExists.Username,
+                CreatedAt = message.CreatedAt
             };
 
             // When a new message is sent, notify all users associated with the relevant ticket.

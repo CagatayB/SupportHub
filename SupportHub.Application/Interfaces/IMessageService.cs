@@ -6,6 +6,6 @@ namespace SupportHub.Application.Interfaces
     {
 
         Task<List<MessageDto>> GetMessagesByTicketIdAsync(int ticketId);
-        Task<MessageDto> SendMessageAsync(int ticketId, SendMessageRequest request, string userId);
+        Task<MessageDto> SendMessageAsync(int ticketId, SendMessageRequest request, int userId);
     }
 }

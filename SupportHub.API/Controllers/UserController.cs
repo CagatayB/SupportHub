@@ -40,7 +40,7 @@ namespace SupportHub.API.Controllers
             }
 
             user.Role = updateRoleDto.NewRole;
-            user.UpdatedAt = DateTime.UtcNow; // Update the UpdatedAt timestamp
+            user.UpdatedAt = DateTime.Now; // Update the UpdatedAt timestamp
 
             await _context.SaveChangesAsync();
             return NoContent();
