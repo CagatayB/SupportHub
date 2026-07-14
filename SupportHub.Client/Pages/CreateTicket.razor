@@ -1,4 +1,6 @@
 ﻿@page "/tickets/create"
+@attribute [Authorize]
+@using Microsoft.AspNetCore.Authorization
 @using SupportHub.Application.DTOs.Ticket
 @using SupportHub.Client.Services
 @using static SupportHub.Domain.Enums.Enums @* Enum'ların yer aldığı namespace *@
